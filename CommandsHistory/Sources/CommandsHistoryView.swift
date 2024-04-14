@@ -12,26 +12,37 @@ public struct CommandsHistoryView: View {
     }
 
     public var body: some View {
-        if store.commandsInHistory.isEmpty {
-            ScrollView {
-                Text("Тут появится история")
+        VStack {
+            if store.commandsInHistory.isEmpty {
+                ScrollView {
+                    Text(
+                        """
+                            Тут появится история выполненных команд.
+                        
+                            Одиночный тап - выбрать команду.
+                            Двойной тап на выбранной команде - сразу исполнить ее.
+                            Долгий тап на выбранной команде - открыть окно ввода аргументов.
+                        """
+                    )
                     .frame(alignment: .center)
                     .padding()
-            }
-        } else {
-            ScrollView {
-                contentView
-            }
-            .background(Color.black)
-            .padding(EdgeInsets(top: 5, leading: 10, bottom: 0, trailing: 10))
-
-            ActionButtons(store: store)
-
-                .sheet(
-                    item: $store.scope(state: \.commandArguments, action: \.commandArguments)
-                ) { commandArgumentsStore in
-                    CommandArgumentsView(store: commandArgumentsStore)
                 }
+            } else {
+                VStack {
+                    ScrollView {
+                        contentView
+                    }
+
+                    ActionButtons(store: store)
+                }
+            }
+        }
+        .frame(width: 600)
+        .background(Color.black)
+        .sheet(
+            item: $store.scope(state: \.commandArguments, action: \.commandArguments)
+        ) { commandArgumentsStore in
+            CommandArgumentsView(store: commandArgumentsStore)
         }
     }
 
@@ -90,7 +101,6 @@ struct ActionButtons: View {
                 store.send(.deleteTapped)
             }
             .disabled(store.selectedCommandInHistory == nil)
-            .keyboardShortcut(.cancelAction)
 
             Spacer()
 

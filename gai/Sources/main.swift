@@ -9,7 +9,7 @@ final class MainCommand: ParsableCommand {
     )
 
     @Argument(
-        help: "Рутовая команда, для которой строим строим UI. Например, `ai` или `swift package`"
+        help: "Рутовая команда, для которой строим UI. Например, `ai`."
     )
     var rootCommand: String
 

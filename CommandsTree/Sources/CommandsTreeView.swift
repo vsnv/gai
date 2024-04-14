@@ -12,17 +12,19 @@ public struct CommandsTreeView: View {
     }
 
     public var body: some View {
-        ScrollView {
-            VStack(alignment: .leading) {
-                if let rootCommand = store.rootCommand {
-                    CommandView(store: store, command: rootCommand, level: 0)
-                } else {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle())
-                        .frame(alignment: .center)
+        VStack {
+            ScrollView {
+                VStack(alignment: .leading) {
+                    if let rootCommand = store.rootCommand {
+                        CommandView(store: store, command: rootCommand, level: 0)
+                    } else {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle())
+                            .frame(alignment: .center)
+                    }
                 }
+                .padding()
             }
-            .padding()
         }
 
         .sheet(

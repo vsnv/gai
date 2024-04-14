@@ -52,7 +52,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApplication.shared.mainMenu = mainMenu
 
         let size = CGSize(
-            width: 800,
+            width: 1200,
             height: 800
         )
         window.setContentSize(size)

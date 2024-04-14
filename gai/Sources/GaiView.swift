@@ -11,15 +11,16 @@ struct GaiView: View {
     }
 
     public var body: some View {
-        CommandsTreeView(
-            store: store.scope(state: \.commandsTree, action: \.commandsTree)
-        )
+        HStack {
+            CommandsTreeView(
+                store: store.scope(state: \.commandsTree, action: \.commandsTree)
+            )
+            .frame(minWidth: 600, maxWidth: .infinity)
 
-        Divider()
-
-        CommandsHistoryView(
-            store: store.scope(state: \.commandsHistory, action: \.commandsHistory)
-        )
+            CommandsHistoryView(
+                store: store.scope(state: \.commandsHistory, action: \.commandsHistory)
+            )
+        }
         .onAppear {
             store.send(.viewAppeared)
         }

@@ -84,6 +84,7 @@ public struct CommandsHistoryFeature {
                 return .none
             case .addCommandToHistory(let command):
                 moveOnTop(command, state: &state)
+                select(command, state: &state)
                 return .none
             }
         }
@@ -94,7 +95,7 @@ public struct CommandsHistoryFeature {
 
     private func moveOnTop(_ command: CommandInHistory, state: inout State) {
         removeFromHistory(command, state: &state)
-        state.commandsInHistory.insert(command, at: 0)
+        state.commandsInHistory.append(command)
     }
 
     private func removeFromHistory(_ command: CommandInHistory, state: inout State) {
