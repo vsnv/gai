@@ -1,0 +1,27 @@
+import SwiftUI
+import ComposableArchitecture
+import CommandsTree
+import CommandsHistory
+
+struct GaiView: View {
+    @Bindable private var store: StoreOf<GaiFeature>
+
+    init(store: StoreOf<GaiFeature>) {
+        self.store = store
+    }
+
+    public var body: some View {
+        CommandsTreeView(
+            store: store.scope(state: \.commandsTree, action: \.commandsTree)
+        )
+
+        Divider()
+
+        CommandsHistoryView(
+            store: store.scope(state: \.commandsHistory, action: \.commandsHistory)
+        )
+        .onAppear {
+            store.send(.viewAppeared)
+        }
+    }
+}
