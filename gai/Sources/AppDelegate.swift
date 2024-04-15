@@ -37,10 +37,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     )
 
     private lazy var gaiView = GaiView(store: store)
-    private let rootCommandParameter: String
+    private let launchArgs: LaunchArgs
 
-    init(rootCommandParameter: String) {
-        self.rootCommandParameter = rootCommandParameter
+    init(launchArgs: LaunchArgs) {
+        self.launchArgs = launchArgs
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -70,7 +70,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
 
-        store.send(.appLaunched(rootCommandParameter: rootCommandParameter))
+        store.send(.appLaunched(with: launchArgs))
     }
 
     func applicationWillTerminate(_ notification: Notification) {

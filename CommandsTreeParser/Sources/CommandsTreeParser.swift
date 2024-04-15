@@ -16,9 +16,9 @@ public final class CommandsTreeParser {
 
     public init() {}
 
-    public func parseTree(fromRootCommand rootCommand: String) async -> Command? {
+    public func parseTree(fromRootCommand rootCommand: String, in directory: String?) async -> Command {
         let value = await Task.detached {
-            guard let builder = self.parseCommands(fromRootCommand: rootCommand) else { return Optional<Command>.none }
+            let builder = self.parseCommands(fromRootCommand: rootCommand, in: directory)
             let rootCommandParsed = self.mapCommandBuilderToCommandWithArgs(builder)
             return rootCommandParsed
         }.value
@@ -36,11 +36,11 @@ public final class CommandsTreeParser {
         )
     }
 
-    func parseCommands(fromRootCommand rootCommand: String) -> CommandBuilder? {
+    func parseCommands(fromRootCommand rootCommand: String, in directory: String?) -> CommandBuilder {
         print("Parsing \(rootCommand)...")
-        let output = self.executeCommand(rootCommand, arguments: ["-h"]) ?? ""
+        let output = self.executeCommand(rootCommand, arguments: ["-h"], in: directory) ?? ""
 
-        guard let parsedHelp = self.commandHelpParser.parse(commandHelp: output) else { return nil }
+        let parsedHelp = self.commandHelpParser.parse(commandHelp: output)
 
         let path = rootCommand.components(separatedBy: .whitespaces)
 
@@ -61,9 +61,8 @@ public final class CommandsTreeParser {
         var subcommandsParsed: [CommandBuilder] = []
         for subcommandName in rootCommandParsed.subcommandsNames {
             let newCommand = "\(rootCommand) \(subcommandName)"
-            if let subcommandTree = self.parseCommands(fromRootCommand: newCommand) {
-                subcommandsParsed.append(subcommandTree)
-            }
+            let subcommandTree = self.parseCommands(fromRootCommand: newCommand, in: directory)
+            subcommandsParsed.append(subcommandTree)
         }
 
         subcommandsParsed.sort { (command1, command2) in
@@ -82,14 +81,31 @@ public final class CommandsTreeParser {
     }
 
     // FIXME: Юзать CommandExecutor или ваще импортнуть CLT
-    private func executeCommand(_ command: String, arguments: [String] = []) -> String? {
+    private func executeCommand(
+        _ command: String,
+        arguments: [String] = [],
+        in directory: String?
+    ) -> String? {
         let process = Process()
         let pipe = Pipe()
 
         process.standardOutput = pipe
         process.standardError = pipe
         process.executableURL = URL(fileURLWithPath: "/bin/zsh")
-        process.arguments = ["-c", ([command] + arguments).joined(separator: " ")]
+
+        let commandWithArgs = ([command] + arguments).joined(separator: " ")
+        let stringToExecute: String
+        if let directory = directory {
+            stringToExecute = "cd " + directory + " && " + commandWithArgs
+        } else {
+            stringToExecute = commandWithArgs
+        }
+
+        process.arguments = ["-c", stringToExecute]
+
+        if let arguments = process.arguments {
+            print("Executing: \(arguments)")
+        }
 
         do {
             try process.run()

@@ -6,7 +6,7 @@ final class CommandHelpParser {
     private let subcommandsParser = SubcommandsParser()
     private let flagsParser = FlagsParser()
 
-    func parse(commandHelp: String) -> ParsedCommandHelp? {
+    func parse(commandHelp: String) -> ParsedCommandHelp {
         let sections = commandHelp.components(separatedBy: "\n\n").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
 
         var overview: String?
@@ -21,8 +21,11 @@ final class CommandHelpParser {
         let subcommandsHeader = "SUBCOMMANDS:"
 
         for section in sections {
-            if section.starts(with: "OVERVIEW:") {
-                overview = section.replacingOccurrences(of: "OVERVIEW: ", with: "")
+            if section.contains("OVERVIEW:") {
+                if let overviewPart = section.split(separator: "OVERVIEW: ", maxSplits: 1, omittingEmptySubsequences: true).last {
+                    let result = overviewPart.trimmingCharacters(in: .whitespacesAndNewlines)
+                    overview = result
+                }
             } else if section.starts(with: "USAGE:") {
                 usage = section.replacingOccurrences(of: "USAGE: ", with: "")
             } else if section.starts(with: optionsHeader) {
@@ -35,7 +38,9 @@ final class CommandHelpParser {
             }
         }
 
-        guard let usage else { return nil }
+        guard let usage else {
+            fatalError("Не удалось распарсить USAGE для\n\n\(commandHelp)")
+        }
 
         return .init(
             usage: usage,

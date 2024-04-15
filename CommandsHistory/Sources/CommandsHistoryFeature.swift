@@ -2,7 +2,6 @@ import Foundation
 import ComposableArchitecture
 import CommandsModels
 import CommandArguments
-import CommandExecutor
 
 @Reducer
 public struct CommandsHistoryFeature {
@@ -32,9 +31,9 @@ public struct CommandsHistoryFeature {
         case commandArguments(
             PresentationAction<CommandArgumentsFeature.Action>
         )
-    }
 
-    @Dependency(\.commandExecutor) var commandExecutor: CommandExecutor
+        case execute(CommandInHistory)
+    }
 
     public init() {}
 
@@ -45,8 +44,9 @@ public struct CommandsHistoryFeature {
                 select(tappedCommand, state: &state)
                 return .none
             case .commandDoubleTapped(let command):
-                commandExecutor.run(command.stringToExecute)
+//                commandExecutor.run(command.stringToExecute)
                 return .run { send in
+                    await send(.execute(command))
                     await send(.addCommandToHistory(command))
                 }
             case .commandLongTapped(let command):
@@ -55,8 +55,9 @@ public struct CommandsHistoryFeature {
             case .commandArguments(.presented(let commandArgumentsAction)):
                 switch commandArgumentsAction {
                 case .executeCommandTapped(let command):
-                    commandExecutor.run(command.stringToExecute)
+//                    commandExecutor.run(command.stringToExecute)
                     return .run { send in
+                        await send(.execute(.init(commandForArgsInput: command)))
                         await send(.addCommandToHistory(.init(commandForArgsInput: command)))
                     }
                 default:
@@ -71,8 +72,9 @@ public struct CommandsHistoryFeature {
                 }
             case .executeTapped:
                 guard let selectedCommand = state.selectedCommandInHistory else { return .none }
-                commandExecutor.run(selectedCommand.stringToExecute)
+//                commandExecutor.run(selectedCommand.stringToExecute)
                 return .run { send in
+                    await send(.execute(selectedCommand))
                     await send(.addCommandToHistory(selectedCommand))
                 }
             case .configureTapped:
@@ -85,6 +87,8 @@ public struct CommandsHistoryFeature {
             case .addCommandToHistory(let command):
                 moveOnTop(command, state: &state)
                 select(command, state: &state)
+                return .none
+            case .execute:
                 return .none
             }
         }

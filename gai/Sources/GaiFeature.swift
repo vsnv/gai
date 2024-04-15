@@ -5,33 +5,37 @@ import CommandsModels
 import CommandsTree
 import CommandsTreeParser
 import StatePersistence
+import CommandExecutor
 
 @Reducer
-public struct GaiFeature {
+struct GaiFeature {
 
     @ObservableState
-    public struct State: Equatable, Codable {
-        public var commandsTree: CommandsTreeFeature.State = .init()
-        public var commandsHistory: CommandsHistoryFeature.State = .init()
+    struct State: Equatable, Codable {
+        var commandsTree: CommandsTreeFeature.State = .init()
+        var commandsHistory: CommandsHistoryFeature.State = .init()
 
-        public var rootCommandParameter: String?
+        var rootCommandArgument: String?
+        var directory: String?
     }
 
-    public enum Action {
+    enum Action {
         case commandsTree(CommandsTreeFeature.Action)
         case commandsHistory(CommandsHistoryFeature.Action)
 
-        case appLaunched(rootCommandParameter: String)
+        case appLaunched(with: LaunchArgs)
         case viewAppeared
         case commandsTreeParsed(Command)
         case failedToParse(rootCommandParameter: String)
         case appWillTerminate
+        case execute(String)
     }
 
     @Dependency(\.statePersistence) var statePersistence: StatePersistence
     @Dependency(\.commandsTreeParser) var commandsTreeParser: CommandsTreeParser
+    @Dependency(\.commandExecutor) var commandExecutor: CommandExecutor
 
-    public var body: some Reducer<State, Action> {
+    var body: some Reducer<State, Action> {
         Scope(state: \.commandsTree, action: \.commandsTree) {
             CommandsTreeFeature()
         }
@@ -40,21 +44,23 @@ public struct GaiFeature {
         }
         Reduce { state, action in
             switch action {
-            case .appLaunched(let rootCommandParameter):
+            case .appLaunched(let launchArgs):
                 state = State()
-                state.rootCommandParameter = rootCommandParameter
-                if let persistedState = try? statePersistence.read(State.self, forKey: rootCommandParameter) {
+                if let persistedState = try? statePersistence.read(State.self, forKey: launchArgs.rootCommand) {
                     state = persistedState
                 }
+                state.rootCommandArgument = launchArgs.rootCommand
+                state.directory = launchArgs.directory
                 return .none
             case .viewAppeared:
-                guard let rootCommandParameter = state.rootCommandParameter else { return .none }
+                guard let rootCommandParameter = state.rootCommandArgument else { return .none }
+                let directory = state.directory
                 return .run { send in
-                    if let parsedTreeRootCommand = await commandsTreeParser.parseTree(fromRootCommand: rootCommandParameter) {
-                        await send(.commandsTreeParsed(parsedTreeRootCommand))
-                    } else {
-                        await send(.failedToParse(rootCommandParameter: rootCommandParameter))
-                    }
+                    let parsedTreeRootCommand = await commandsTreeParser.parseTree(
+                        fromRootCommand: rootCommandParameter,
+                        in: directory
+                    )
+                    await send(.commandsTreeParsed(parsedTreeRootCommand))
                 }
             case .commandsTreeParsed(let parsedTreeRootCommand):
                 if state.commandsTree.rootCommand != parsedTreeRootCommand {
@@ -62,7 +68,7 @@ public struct GaiFeature {
                 }
                 return .none
             case .appWillTerminate:
-                guard let rootCommandParameter = state.rootCommandParameter else { return .none }
+                guard let rootCommandParameter = state.rootCommandArgument else { return .none }
                 statePersistence.write(state, forKey: rootCommandParameter)
                 return .none
 
@@ -77,8 +83,20 @@ public struct GaiFeature {
                     default:
                         return .none
                     }
+                case .execute(let command):
+                    commandExecutor.run(command.stringToExecute, in: state.directory)
+                    return .none
                 default:
                     return .none
+                }
+            case .commandsHistory(let commandsHistoryAction):
+                switch commandsHistoryAction {
+                case .execute(let command):
+                    commandExecutor.run(command.stringToExecute, in: state.directory)
+                    return .none
+                default:
+                    return .none
+
                 }
             case .failedToParse:
                 return .none

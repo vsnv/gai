@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "CommandRunnerDemo"
-               BuildableName = "CommandRunnerDemo"
-               BlueprintName = "CommandRunnerDemo"
+               BlueprintIdentifier = "gai"
+               BuildableName = "gai"
+               BlueprintName = "gai"
                ReferencedContainer = "container:">
             </BuildableReference>
          </BuildActionEntry>
@@ -43,12 +43,18 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CommandRunnerDemo"
-            BuildableName = "CommandRunnerDemo"
-            BlueprintName = "CommandRunnerDemo"
+            BlueprintIdentifier = "gai"
+            BuildableName = "gai"
+            BlueprintName = "gai"
             ReferencedContainer = "container:">
          </BuildableReference>
       </BuildableProductRunnable>
+      <CommandLineArguments>
+         <CommandLineArgument
+            argument = "&quot;swift run -- indep&quot; -d &quot;~/avito-ios/avito-project-gen/&quot;"
+            isEnabled = "YES">
+         </CommandLineArgument>
+      </CommandLineArguments>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -60,9 +66,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CommandRunnerDemo"
-            BuildableName = "CommandRunnerDemo"
-            BlueprintName = "CommandRunnerDemo"
+            BlueprintIdentifier = "gai"
+            BuildableName = "gai"
+            BlueprintName = "gai"
             ReferencedContainer = "container:">
          </BuildableReference>
       </BuildableProductRunnable>

@@ -1,6 +1,24 @@
 import AppKit
 import ArgumentParser
 
+struct LaunchArgs: ParsableArguments {
+    @Argument(
+        help: "Рутовая команда, для которой строим UI. Например, `ai`."
+    )
+    var rootCommand: String
+
+    @Option(
+        name: .shortAndLong,
+        help: "Директория, в которой должны выполняться команды."
+    )
+    var directory: String?
+//
+//    @Option(
+//        help: "Директория, в которой должны выполняться команды, которые необходимо распарсить"
+//    )
+//    var parseDirectory: String?
+}
+
 final class MainCommand: ParsableCommand {
     static var configuration: CommandConfiguration = CommandConfiguration(
         abstract: "🚓🚓🚓🚓",
@@ -8,14 +26,11 @@ final class MainCommand: ParsableCommand {
         subcommands: []
     )
 
-    @Argument(
-        help: "Рутовая команда, для которой строим UI. Например, `ai`."
-    )
-    var rootCommand: String
+    @OptionGroup var args: LaunchArgs
 
     func run() {
         let app = NSApplication.shared
-        let delegate = AppDelegate(rootCommandParameter: rootCommand)
+        let delegate = AppDelegate(launchArgs: args)
         app.delegate = delegate
         app.run()
     }

@@ -1,6 +1,5 @@
 import ComposableArchitecture
 import CommandsModels
-import CommandExecutor
 import CommandArguments
 
 @Reducer
@@ -24,9 +23,8 @@ public struct CommandsTreeFeature {
         case commandArguments(
             PresentationAction<CommandArgumentsFeature.Action>
         )
+        case execute(CommandForArgsInput)
     }
-
-    @Dependency(\.commandExecutor) var commandExecutor: CommandExecutor
 
     public init() {}
 
@@ -53,11 +51,15 @@ public struct CommandsTreeFeature {
                 case .setFlag(let command, let key, let flagValue, let isFlagOn):
                     state.commandsWithArgs[command]?.argsStorage.setFlagValue(isFlagOn, flagValue: flagValue, for: key)
                     return .none
-                case .executeCommandTapped(let commandWithArgs):
-                    commandExecutor.run(commandWithArgs.stringToExecute)
-                    return .none
+                case .executeCommandTapped(let command):
+//                    commandExecutor.run(commandWithArgs.stringToExecute, in: state.directory)
+                    return .run { send in
+                        await send(.execute(command))
+                    }
                 }
             case .commandArguments(.dismiss):
+                return .none
+            case .execute:
                 return .none
             }
         }
