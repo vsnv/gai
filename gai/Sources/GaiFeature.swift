@@ -1,3 +1,4 @@
+import Foundation
 import ComposableArchitecture
 import Dependencies
 import CommandsHistory
@@ -12,6 +13,13 @@ struct GaiFeature {
 
     @ObservableState
     struct State: Equatable, Codable {
+
+        public static func == (lhs: State, rhs: State) -> Bool {
+            lhs.commandsTree == rhs.commandsTree &&
+            lhs.commandsHistory == rhs.commandsHistory &&
+            lhs.rootCommandArgument == rhs.rootCommandArgument
+        }
+
         var commandsTree: CommandsTreeFeature.State = .init()
         var commandsHistory: CommandsHistoryFeature.State = .init()
 
@@ -45,12 +53,22 @@ struct GaiFeature {
         Reduce { state, action in
             switch action {
             case .appLaunched(let launchArgs):
+
                 state = State()
-                if let persistedState = try? statePersistence.read(State.self, forKey: launchArgs.rootCommand) {
+
+                if launchArgs.rootCommand == "spm" {
+                    state.rootCommandArgument = "swift package"
+                } else {
+                    state.rootCommandArgument = launchArgs.rootCommand
+                }
+
+                guard let rootCommandParameter = state.rootCommandArgument else { return .none }
+
+                if let persistedState = try? statePersistence.read(State.self, forKey: rootCommandParameter) {
                     state = persistedState
                 }
-                state.rootCommandArgument = launchArgs.rootCommand
-                state.directory = launchArgs.directory
+
+                state.directory = launchArgs.directory ?? URL(fileURLWithPath: CommandLine.arguments[0]).deletingLastPathComponent().path
                 return .none
             case .viewAppeared:
                 guard let rootCommandParameter = state.rootCommandArgument else { return .none }

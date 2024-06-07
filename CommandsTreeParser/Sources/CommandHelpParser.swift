@@ -39,7 +39,8 @@ final class CommandHelpParser {
         }
 
         guard let usage else {
-            fatalError("Не удалось распарсить USAGE для\n\n\(commandHelp)")
+            print("Не удалось распарсить USAGE для\n\n\(commandHelp)")
+            fatalError()
         }
 
         return .init(

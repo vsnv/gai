@@ -3,20 +3,15 @@ import ArgumentParser
 
 struct LaunchArgs: ParsableArguments {
     @Argument(
-        help: "Рутовая команда, для которой строим UI. Например, `ai`."
+        help: "Рутовая команда, для которой строим UI."
     )
-    var rootCommand: String
+    var rootCommand: String = "ai"
 
     @Option(
         name: .shortAndLong,
-        help: "Директория, в которой должны выполняться команды."
+        help: "Директория, в которой должны выполняться команды. Если не указано, будет выполнено в папке, в которой запущен сам gai"
     )
     var directory: String?
-//
-//    @Option(
-//        help: "Директория, в которой должны выполняться команды, которые необходимо распарсить"
-//    )
-//    var parseDirectory: String?
 }
 
 final class MainCommand: ParsableCommand {
